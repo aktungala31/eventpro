@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Centific Event Pass Pro — Secure participant check-in, multi-event management, QR pass issuance, and real-time analytics for large-scale Centific events.">
+<meta name="theme-color" content="#CD128A">
+<meta property="og:title" content="Centific Event Pass Pro">
+<meta property="og:description" content="Secure participant check-in, QR pass issuance, and real-time event analytics.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23CD128A'/><text x='16' y='22' text-anchor='middle' font-size='18' font-weight='700' font-family='Arial' fill='white'>C</text></svg>">
+<title>Centific Event Pass Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --cm:#CD128A;--cp:#EF43B3;--cv:#A12AD3;
+  --cbl:#FACAE9;--clv:#EDE7F6;--ccw:#F2F5FB;
+  --cw:#FFFFFF;--ck:#000000;--cch:#161616;
+  --cg:#707070;--cs:#A3A4A6;
+  --gsc:linear-gradient(135deg,#FACAE9 0%,#EDE7F6 50%,#F2F5FB 100%);
+  --gh:linear-gradient(135deg,#A12AD3 0%,#CD128A 40%,#EF43B3 70%,#FACAE9 100%);
+  --font:'DM Sans',Arial,sans-serif;
+  --r:4px;--safe:36px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ccw);color:var(--ck);font-family:var(--font);font-size:14px;min-height:100vh;overflow-x:hidden}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--r);border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;transition:all .18s;white-space:nowrap}
+.btn-primary{background:var(--cm);color:#fff}.btn-primary:hover{background:#b00e78}
+.btn-outline{background:transparent;color:var(--cch);border:1.5px solid var(--cs)}.btn-outline:hover{border-color:var(--cm);color:var(--cm)}
+.btn-ghost{background:var(--ccw);color:var(--cch);border:1px solid var(--cs)}.btn-ghost:hover{background:var(--clv)}
+.btn-danger{background:#e53935;color:#fff}.btn-danger:hover{background:#c62828}
+.btn-violet{background:var(--cv);color:#fff}.btn-violet:hover{background:#8820b5}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed!important}
+
+/* ─── LOGIN ─── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,var(--ccw) 0%,var(--clv) 40%,var(--cbl) 100%)}
+.lw{display:grid;grid-template-columns:1fr 1fr;max-width:860px;width:95%;background:var(--cw);border-radius:var(--r);overflow:hidden;box-shadow:0 16px 64px rgba(0,0,0,.12)}
+.lhero{background:var(--gh);padding:48px 40px;display:flex;flex-direction:column;justify-content:flex-end}
+.lhero .eye{font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.lhero h1{font-size:30px;font-weight:300;color:#fff;line-height:1.2;margin-bottom:12px}
+.lhero p{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6}
+.lfp{padding:48px 40px}
+.lf-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.lmark{width:32px;height:32px;border-radius:2px;background:var(--gh);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.lf-logo span{font-size:13px;font-weight:700;color:var(--cch)}
+.lf-title{font-size:22px;font-weight:300;color:var(--cch);margin-bottom:4px}
+.lf-sub{font-size:13px;color:var(--cg);margin-bottom:24px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--cg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fg input,.fg select{width:100%;background:var(--ccw);border:1px solid var(--cs);border-radius:var(--r);padding:10px 13px;font-family:var(--font);color:var(--cch);font-size:14px;outline:none;transition:border .2s}
+.fg input:focus,.fg select:focus{border-color:var(--cm);background:var(--cw)}
+.demo-box{margin-top:16px;padding:11px 13px;background:var(--clv);border-radius:var(--r)}
+.demo-box p{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--cs);margin-bottom:4px}
+.demo-box span{font-size:12px;color:var(--cv)}
+
+/* ─── MAIN APP ─── */
+#main-app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--cw);border-bottom:2px solid var(--cbl);height:58px;padding:0 var(--safe);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:14px}
+.tb-logo{display:flex;align-items:center;gap:10px}
+.tb-logo span{font-size:14px;font-weight:700;color:var(--cch)}
+.tb-logo span em{color:var(--cm);font-style:normal}
+.event-selector{display:flex;align-items:center;gap:8px;background:var(--ccw);border:1px solid var(--cs);border-radius:var(--r);padding:4px 10px;cursor:pointer;transition:border .2s}
+.event-selector:hover{border-color:var(--cm)}
+.event-selector select{background:transparent;border:none;font-family:var(--font);font-size:12px;color:var(--cch);outline:none;cursor:pointer;font-weight:500;max-width:220px}
+.es-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--cs)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.live-pill{background:var(--clv);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;color:var(--cv);display:flex;align-items:center;gap:5px}
+.ldot{width:6px;height:6px;background:var(--cv);border-radius:50%;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--ccw);border:1px solid var(--cs);border-radius:20px;padding:4px 11px}
+.uav{width:24px;height:24px;border-radius:50%;background:var(--cm);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.user-chip span{font-size:12px;color:var(--cch);font-weight:500}
+.role-badge{font-size:10px;background:var(--clv);color:var(--cv);border-radius:3px;padding:2px 6px;font-weight:700}
+
+/* ─── LAYOUT ─── */
+.layout{display:flex;flex:1;height:calc(100vh - 58px);overflow:hidden}
+.sidebar{width:218px;background:var(--cw);border-right:1px solid #E8E8E8;padding:14px 0;flex-shrink:0;overflow-y:auto}
+.sl{padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--cs);letter-spacing:.1em;text-transform:uppercase}
+.si{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;color:var(--cg);transition:all .14s;border-left:3px solid transparent;font-size:13px;font-weight:400}
+.si:hover{color:var(--cch);background:var(--ccw)}
+.si.active{color:var(--cm);background:var(--cbl);border-left-color:var(--cm);font-weight:500}
+.si .sico{font-size:15px;width:18px;text-align:center}
+.sbadge{margin-left:auto;background:var(--cm);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700}
+.content{flex:1;overflow-y:auto;padding:var(--safe);background:var(--ccw)}
+.page{display:none}.page.active{display:block}
+
+/* ─── PAGE HEADER ─── */
+.ph{margin-bottom:24px}
+.cat-lbl{font-size:12px;font-weight:700;color:var(--ck);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.main-title{font-size:clamp(22px,2.5vw,34px);font-weight:300;color:var(--ck);line-height:1.15}
+.subtitle{font-size:13px;color:var(--cg);margin-top:5px}
+
+/* ─── CARDS ─── */
+.card{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);padding:20px}
+.card-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.card-title{font-size:13px;font-weight:700;color:var(--cch)}
+.card-sub{font-size:12px;color:var(--cg)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.sc{background:var(--gsc);padding:20px;border-radius:var(--r)}
+.sc .num{font-size:52px;font-weight:400;color:var(--cv);line-height:1}
+.sc .lbl{font-size:13px;font-weight:700;color:var(--ck);margin-top:6px}
+.sc .dsc{font-size:12px;color:var(--cg);margin-top:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.mb20{margin-bottom:20px}
+
+/* ─── TABLE ─── */
+.twrap{overflow-x:auto;border:1px solid #E8E8E8;border-radius:var(--r);background:var(--cw)}
+table{width:100%;border-collapse:collapse}
+th{background:var(--ccw);padding:10px 13px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--cs);border-bottom:1px solid #E8E8E8;white-space:nowrap}
+td{padding:10px 13px;font-size:13px;border-bottom:1px solid #F0F0F0;color:var(--cch)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--ccw)}
+.tid{font-family:monospace;font-size:12px;color:var(--cv)}
+
+/* ─── TOOLBAR ─── */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.sinp{background:var(--cw);border:1px solid var(--cs);border-radius:var(--r);padding:7px 12px;color:var(--cch);font-size:13px;outline:none;flex:1;min-width:150px;max-width:240px;font-family:var(--font)}
+.sinp:focus{border-color:var(--cm)}
+select.fsel{background:var(--cw);border:1px solid var(--cs);border-radius:var(--r);padding:7px 11px;color:var(--cch);font-size:13px;outline:none;cursor:pointer;font-family:var(--font)}
+
+/* ─── PILLS / CHIPS ─── */
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600}
+.p-ok{background:rgba(161,42,211,.08);color:var(--cv)}
+.p-warn{background:rgba(239,67,179,.08);color:var(--cp)}
+.p-gray{background:var(--ccw);color:var(--cg)}
+.p-err{background:rgba(229,57,53,.08);color:#e53935}
+.p-arc{background:rgba(205,18,138,.08);color:var(--cm)}
+.chip{display:inline-flex;align-items:center;border-radius:3px;padding:2px 7px;font-size:11px;font-weight:700}
+.ch-v{background:rgba(161,42,211,.08);color:var(--cv)}
+.ch-m{background:rgba(205,18,138,.08);color:var(--cm)}
+.ch-g{background:var(--ccw);color:var(--cg)}
+.ch-r{background:rgba(229,57,53,.08);color:#e53935}
+
+/* ─── ALERTS ─── */
+.alert{border-radius:var(--r);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;margin-bottom:13px;font-size:13px}
+.a-ok{background:rgba(161,42,211,.05);border:1px solid rgba(161,42,211,.2);color:var(--cv)}
+.a-err{background:rgba(229,57,53,.05);border:1px solid rgba(229,57,53,.2);color:#c62828}
+.a-warn{background:rgba(239,67,179,.05);border:1px solid rgba(239,67,179,.2);color:var(--cp)}
+.a-ico{font-size:14px;flex-shrink:0;margin-top:1px}
+.a-body strong{display:block;font-weight:700;margin-bottom:2px}
+
+/* ─── UPLOAD ZONE ─── */
+.uzone{border:2px dashed var(--cs);border-radius:var(--r);padding:40px;text-align:center;cursor:pointer;transition:all .2s;background:var(--ccw)}
+.uzone:hover,.uzone.drag-over{border-color:var(--cm);background:var(--cbl)}
+.uzone h3{font-size:14px;font-weight:500;margin-bottom:5px;color:var(--cch)}
+.uzone p{color:var(--cg);font-size:13px;margin-bottom:13px}
+.ftags{display:flex;justify-content:center;gap:7px;margin-top:10px}
+.ftag{background:var(--cw);border:1px solid var(--cs);border-radius:3px;padding:3px 8px;font-size:11px;color:var(--cg);font-weight:600}
+
+/* ─── DANGER ZONE ─── */
+.dz{background:rgba(229,57,53,.03);border:1px solid rgba(229,57,53,.2);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.dz h4{font-size:13px;font-weight:700;color:#c62828;margin-bottom:2px}
+.dz p{font-size:12px;color:var(--cg)}
+
+/* ─── MODAL ─── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--cw);border-radius:var(--r);width:100%;max-width:520px;box-shadow:0 12px 48px rgba(0,0,0,.14);overflow:hidden;animation:mslide .22s ease}
+@keyframes mslide{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{padding:22px 24px 0}
+.modal-title{font-size:16px;font-weight:500;color:var(--cch);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--cg);margin-bottom:14px}
+.modal-body{padding:16px 24px}
+.modal-foot{display:flex;gap:9px;padding:14px 24px;border-top:1px solid #F0F0F0}
+
+/* import dialog inline */
+.imp-backdrop{background:rgba(0,0,0,.5);border-radius:var(--r);padding:28px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.imp-modal{background:var(--cw);border-radius:var(--r);width:100%;max-width:520px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.imp-head{padding:20px 22px 0}
+.imp-stats{display:flex;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0;margin-top:14px}
+.ims{flex:1;padding:10px;text-align:center;border-right:1px solid #F0F0F0}
+.ims:last-child{border-right:none}
+.ims .mv{font-size:18px;font-weight:400;color:var(--cv)}
+.ims .ml{font-size:10px;color:var(--cs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.imp-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 22px}
+.mopt{border:1.5px solid #E8E8E8;border-radius:var(--r);padding:14px;cursor:pointer;transition:all .18s;background:var(--ccw)}
+.mopt:hover{border-color:var(--cs);background:var(--clv)}
+.mopt.sel-m{border-color:var(--cv);background:rgba(161,42,211,.05)}
+.mopt.sel-c{border-color:#e53935;background:rgba(229,57,53,.04)}
+.mopt-badge{font-size:10px;font-weight:700;border-radius:3px;padding:2px 6px;float:right}
+.mb-s{background:rgba(161,42,211,.1);color:var(--cv)}
+.mb-w{background:rgba(229,57,53,.1);color:#e53935}
+.mopt-icon{font-size:20px;margin-bottom:8px;display:block}
+.mopt-title{font-size:13px;font-weight:600;color:var(--cch);margin-bottom:3px}
+.mopt-desc{font-size:12px;color:var(--cg);line-height:1.45}
+.imp-warn{margin:0 22px;padding:10px 12px;border-radius:var(--r);background:rgba(229,57,53,.05);border:1px solid rgba(229,57,53,.2);font-size:12px;color:#c62828;line-height:1.5;display:none}
+.imp-foot{display:flex;gap:9px;padding:14px 22px;border-top:1px solid #F0F0F0;margin-top:14px;flex-wrap:wrap}
+
+/* ─── DONUT CHART ─── */
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.dl-row{display:flex;align-items:center;gap:8px}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dl-lbl{font-size:12px;color:var(--cch);flex:1}
+.dl-cnt{font-size:12px;font-weight:700;color:var(--cch)}
+.dl-pct{font-size:11px;color:var(--cg);margin-left:4px}
+
+/* ─── CHECK-IN LAYOUT ─── */
+.clayout{display:grid;grid-template-columns:390px 1fr;gap:18px}
+.sbwrap{position:relative;margin-bottom:16px}
+.sbwrap input{width:100%;padding:12px 16px 12px 42px;background:var(--cw);border:1.5px solid var(--cs);border-radius:var(--r);font-family:var(--font);color:var(--cch);font-size:15px;font-weight:500;outline:none;transition:all .2s}
+.sbwrap input:focus{border-color:var(--cm)}
+.sico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--cs)}
+.sres{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);overflow:hidden;margin-top:-6px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.sri{padding:11px 14px;border-bottom:1px solid #F0F0F0;cursor:pointer;transition:background .12s}
+.sri:hover{background:var(--ccw)}.sri:last-child{border-bottom:none}
+.sri-name{font-size:13px;font-weight:500;color:var(--cch)}
+.sri-meta{font-size:11px;color:var(--cg);margin-top:1px}
+.ecrd{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);overflow:hidden}
+.ech{padding:16px 18px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;gap:12px}
+.ecav{width:46px;height:46px;border-radius:var(--r);background:var(--gsc);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--cm);flex-shrink:0}
+.ec-n{font-size:15px;font-weight:500;color:var(--cch)}
+.ec-id{font-size:11px;color:var(--cg);font-family:monospace;margin-top:1px}
+.ec-dept{font-size:12px;color:var(--cv);margin-top:2px;font-weight:500}
+.ecb{padding:14px 18px}
+.ecf{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F8F8F8}
+.ecf:last-child{border-bottom:none}
+.ecfl{font-size:12px;color:var(--cg);font-weight:500}
+.ecfv{font-size:13px;color:var(--cch)}
+.eca{padding:12px 18px;background:var(--ccw);border-top:1px solid #F0F0F0;display:flex;gap:9px}
+.pcrd{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);overflow:hidden}
+.pch{padding:16px 20px;background:var(--gh);display:flex;align-items:center;justify-content:space-between}
+.pen{font-size:14px;font-weight:500;color:#fff}
+.pt{font-size:10px;color:rgba(255,255,255,.75);margin-top:2px;letter-spacing:.05em;text-transform:uppercase}
+.pcb{padding:18px;display:flex;gap:14px;align-items:center}
+.pqr{width:96px;height:96px;background:#fff;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:1px solid #E8E8E8}
+.p-n{font-size:16px;font-weight:500;color:var(--cch);margin-bottom:3px}
+.p-d{font-size:12px;color:var(--cg);margin-bottom:12px}
+.p-cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--cs);margin-bottom:3px}
+.p-c{font-family:monospace;font-size:19px;font-weight:700;color:var(--cm);letter-spacing:3px}
+.pcf{padding:11px 18px;background:var(--ccw);border-top:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between}
+.p-ts{font-size:11px;color:var(--cs)}
+.p-v{font-size:11px;font-weight:700;color:var(--cv)}
+
+/* ─── REPORT SUMMARY ─── */
+.rsumm{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:18px}
+.rsc{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);padding:16px;text-align:center}
+.rsc .rv{font-size:30px;font-weight:300;margin-bottom:3px}
+.rsc .rl{font-size:11px;color:var(--cg);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+
+/* ─── AUDIT ─── */
+.arow{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid #F0F0F0}
+.arow:last-child{border-bottom:none}
+.atm{font-size:11px;color:var(--cs);font-family:monospace;width:72px;flex-shrink:0;padding-top:1px}
+.aev{font-size:12px;color:var(--cg);flex:1;line-height:1.5}
+
+/* ─── EVENT CARD (events page) ─── */
+.ev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.ev-card{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .18s}
+.ev-card:hover{border-color:var(--cm);box-shadow:0 4px 16px rgba(205,18,138,.08)}
+.ev-card.active-ev{border-color:var(--cm);border-width:2px;box-shadow:0 4px 20px rgba(205,18,138,.12)}
+.ev-card-header{padding:14px 16px;background:var(--gh)}
+.ev-card-header h3{font-size:14px;font-weight:500;color:#fff}
+.ev-card-header .ev-date{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px}
+.ev-card-body{padding:14px 16px}
+.ev-stat-row{display:flex;gap:16px;margin-bottom:10px}
+.ev-stat{text-align:center}
+.ev-stat .v{font-size:20px;font-weight:400;color:var(--cv)}
+.ev-stat .l{font-size:10px;color:var(--cg);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.ev-status-chip{font-size:10px;font-weight:700;border-radius:3px;padding:3px 8px}
+.ev-active{background:rgba(205,18,138,.1);color:var(--cm)}
+.ev-upcoming{background:rgba(161,42,211,.1);color:var(--cv)}
+.ev-past{background:var(--ccw);color:var(--cg)}
+.ev-card-footer{padding:10px 16px;background:var(--ccw);border-top:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between}
+
+/* ─── USER MANAGEMENT ─── */
+.user-card{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;transition:border .2s}
+.user-card:hover{border-color:var(--cm)}
+.user-av-lg{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:14px;font-weight:500;color:var(--cch)}
+.user-un{font-size:12px;color:var(--cg);font-family:monospace;margin-top:1px}
+.user-role-badge{font-size:10px;font-weight:700;border-radius:3px;padding:2px 7px;margin-top:4px;display:inline-block}
+.role-admin{background:rgba(205,18,138,.1);color:var(--cm)}
+.role-staff{background:rgba(161,42,211,.1);color:var(--cv)}
+.role-view{background:var(--ccw);color:var(--cg)}
+.users-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+
+/* ─── EMPTY STATE ─── */
+.es{text-align:center;padding:44px 20px;color:var(--cg)}
+.es .ei{font-size:32px;margin-bottom:10px}
+.es h3{font-size:14px;font-weight:500;color:var(--cch);margin-bottom:5px}
+
+/* ─── TOAST ─── */
+#toast{position:fixed;top:72px;right:22px;z-index:999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--cw);border:1px solid #E8E8E8;border-radius:var(--r);padding:13px 16px;display:flex;align-items:flex-start;gap:11px;min-width:280px;animation:tsl .24s ease;border-left:3px solid var(--cs);pointer-events:auto;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.toast.success{border-left-color:var(--cv)}.toast.danger{border-left-color:#e53935}.toast.warn{border-left-color:var(--cp)}
+.t-ico{font-size:15px;flex-shrink:0;margin-top:1px}
+.t-ttl{font-size:13px;font-weight:700;color:var(--cch);margin-bottom:2px}
+.t-msg{font-size:12px;color:var(--cg)}
+@keyframes tsl{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+
+/* ─── FOOTER ─── */
+.footer{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cs);padding:7px var(--safe);border-top:1px solid #E8E8E8;background:var(--cw)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}.clayout{grid-template-columns:1fr}.ev-grid{grid-template-columns:1fr 1fr}.users-grid{grid-template-columns:1fr 1fr}.imp-opts{grid-template-columns:1fr}}
+@media(max-width:640px){.stat-grid{grid-template-columns:1fr 1fr}.sidebar{display:none}.content{padding:16px}.topbar{padding:0 14px}}
+
+#no-emp-msg,#checkin-result{display:none}
+#sel-emp{display:none}
+#imp-container{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="login-screen">
+  <div class="lw">
+    <div class="lhero">
+      <div class="eye">Centific · Event Operations</div>
+      <h1>Centific Event Pass Pro</h1>
+      <p>Secure participant check-in, multi-event management, QR pass issuance, and real-time analytics — built for large-scale Centific events.</p>
+    </div>
+    <div class="lfp">
+      <div class="lf-logo">
+        <div class="lmark">C</div>
+        <span>Centific Event Pass Pro</span>
+      </div>
+      <div class="lf-title">Sign in</div>
+      <p class="lf-sub">Access your event management dashboard</p>
+      <div class="fg"><label>Username</label><input type="text" id="lu" value="admin" placeholder="Username"></div>
+      <div class="fg"><label>Password</label><input type="password" id="lp" value="admin123" placeholder="Password"></div>
+      <button class="btn btn-primary" onclick="doLogin()" style="width:100%;margin-top:4px;font-size:14px;padding:12px 20px">Sign In to Dashboard</button>
+      <div class="demo-box">
+        <p>Demo Credentials</p>
+        <span>admin / admin123 &nbsp;·&nbsp; staff1 / pass123 &nbsp;·&nbsp; viewer / view123</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN APP ══════════ -->
+<div id="main-app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo">
+        <div class="lmark">C</div>
+        <span>Centific <em>Event Pass Pro</em></span>
+      </div>
+      <div class="event-selector">
+        <div>
+          <div class="es-label">Active Event</div>
+          <select id="event-switcher" onchange="switchEvent()"></select>
+        </div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="live-pill"><span class="ldot"></span>Live</div>
+      <div class="user-chip">
+        <div class="uav" id="topbar-av">A</div>
+        <span id="topbar-uname">Admin</span>
+        <span class="role-badge" id="topbar-role">Admin</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div style="margin-bottom:6px">
+        <div class="sl">Main</div>
+        <div class="si active" id="nav-dashboard" onclick="showPage('dashboard',this)"><span class="sico">📊</span> Dashboard</div>
+        <div class="si" id="nav-checkin" onclick="showPage('checkin',this)"><span class="sico">✅</span> Check-In <span class="sbadge" id="sb-pending">0</span></div>
+      </div>
+      <div style="margin-bottom:6px">
+        <div class="sl">Management</div>
+        <div class="si" id="nav-upload" onclick="showPage('upload',this)"><span class="sico">📁</span> Upload List</div>
+        <div class="si" id="nav-employees" onclick="showPage('employees',this)"><span class="sico">👥</span> Employees</div>
+      </div>
+      <div style="margin-bottom:6px">
+        <div class="sl">Reports</div>
+        <div class="si" id="nav-reports" onclick="showPage('reports',this)"><span class="sico">📋</span> Reports</div>
+        <div class="si" id="nav-audit" onclick="showPage('audit',this)"><span class="sico">🔍</span> Audit Log</div>
+      </div>
+      <div id="admin-nav-section">
+        <div class="sl">Administration</div>
+        <div class="si" id="nav-events" onclick="showPage('events',this)"><span class="sico">🗓️</span> Events</div>
+        <div class="si" id="nav-users" onclick="showPage('users',this)"><span class="sico">🔑</span> User Access</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="ph">
+          <div class="cat-lbl">Event Operations</div>
+          <div class="main-title" id="dash-event-title">Live Event Dashboard</div>
+          <div class="subtitle" id="dash-event-sub">Real-time participant overview</div>
+        </div>
+        <div class="stat-grid">
+          <div class="sc"><div class="num" id="s-total">0</div><div class="lbl">Total Registered</div><div class="dsc">Enrolled for this event</div></div>
+          <div class="sc"><div class="num" id="s-cin" style="color:var(--cm)">0</div><div class="lbl">Checked In</div><div class="dsc" id="s-cin-pct">0% of total</div>
+            <div style="height:3px;background:rgba(205,18,138,.15);border-radius:2px;margin-top:9px;overflow:hidden"><div id="pb-cin" style="height:100%;background:var(--cm);border-radius:2px;transition:width .6s;width:0%"></div></div>
+          </div>
+          <div class="sc"><div class="num" id="s-pass">0</div><div class="lbl">Passes Issued</div><div class="dsc" id="s-pass-pct">0% of checked in</div></div>
+          <div class="sc"><div class="num" id="s-notcin" style="color:var(--cp)">0</div><div class="lbl">Not Checked In</div><div class="dsc">Awaiting arrival</div></div>
+        </div>
+
+        <div class="row2">
+          <!-- Recent activity -->
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-title">Recent Check-ins</div>
+              <span class="chip ch-v" id="act-count">0 today</span>
+            </div>
+            <div id="act-list"><div class="es" style="padding:22px"><div class="ei">🕐</div><p>No check-ins yet.</p></div></div>
+          </div>
+
+          <!-- Food Preference Donut -->
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-title">Food Preference Breakdown</div>
+              <div class="card-sub" id="food-total-lbl">— responses</div>
+            </div>
+            <div id="food-donut-wrap">
+              <div class="es" style="padding:22px"><div class="ei">🍽️</div><p>Upload employee list with Food Preference column to see breakdown.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hourly activity -->
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title">Hourly Check-in Activity</div>
+            <div class="card-sub">Today's distribution</div>
+          </div>
+          <div id="h-chart" style="height:90px;display:flex;align-items:flex-end;gap:5px"></div>
+          <div style="display:flex;justify-content:space-between;padding-top:5px">
+            <span style="font-size:10px;color:var(--cs)">08:00</span>
+            <span style="font-size:10px;color:var(--cs)">12:00</span>
+            <span style="font-size:10px;color:var(--cs)">18:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UPLOAD ── -->
+      <div class="page" id="page-upload">
+        <div class="ph">
+          <div class="cat-lbl">Data Management</div>
+          <div class="main-title">Upload Employee List</div>
+          <div class="subtitle" id="upload-event-sub">Uploading to: —</div>
+        </div>
+
+        <!-- Import modal inline -->
+        <div id="imp-container">
+          <div class="imp-backdrop">
+            <div class="imp-modal">
+              <div class="imp-head">
+                <div style="font-size:15px;font-weight:500;color:var(--cch);margin-bottom:3px">How should we handle existing records?</div>
+                <div style="font-size:13px;color:var(--cg);margin-bottom:10px">Choose what happens to the current registry before importing.</div>
+                <div style="display:inline-flex;align-items:center;gap:7px;background:var(--clv);border-radius:3px;padding:4px 10px;font-size:12px;margin-bottom:0">
+                  📄 <span style="color:var(--cv);font-weight:600;font-family:monospace" id="dlg-fname">—</span> &nbsp;·&nbsp; <span id="dlg-frows" style="color:var(--cg)">— rows</span>
+                </div>
+              </div>
+              <div class="imp-stats">
+                <div class="ims"><div class="mv" id="dlg-ex">0</div><div class="ml">Existing</div></div>
+                <div class="ims"><div class="mv" id="dlg-ci" style="color:var(--cm)">0</div><div class="ml">Checked in</div></div>
+                <div class="ims"><div class="mv" id="dlg-ps">0</div><div class="ml">Passes</div></div>
+                <div class="ims"><div class="mv" id="dlg-nr" style="color:var(--cv)">0</div><div class="ml">New rows</div></div>
+              </div>
+              <div class="imp-opts">
+                <div class="mopt" id="opt-merge" onclick="selMode('merge')">
+                  <span class="mopt-badge mb-s">Recommended</span>
+                  <span class="mopt-icon">🔀</span>
+                  <div class="mopt-title">Merge with existing</div>
+                  <div class="mopt-desc">New IDs added. Existing IDs updated. Check-in history &amp; passes preserved.</div>
+                </div>
+                <div class="mopt" id="opt-clear" onclick="selMode('clear')">
+                  <span class="mopt-badge mb-w">Destructive</span>
+                  <span class="mopt-icon">🗑️</span>
+                  <div class="mopt-title">Clear &amp; replace</div>
+                  <div class="mopt-desc">All existing records, history and passes permanently deleted before importing.</div>
+                </div>
+              </div>
+              <div class="imp-warn" id="m-warn"><strong>⚠️ This cannot be undone</strong><span id="mw-text"></span></div>
+              <div class="imp-foot">
+                <button class="btn btn-outline" style="flex:1" onclick="cancelImport()">Cancel</button>
+                <button class="btn btn-ghost btn-sm" onclick="exportExcel('all')">📤 Backup first</button>
+                <button class="btn btn-primary" id="confirm-btn" onclick="confirmImport()" disabled style="flex:1;background:var(--cs);cursor:not-allowed">Select an option ↑</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb20">
+          <div class="card-title" style="margin-bottom:13px">Import File</div>
+          <div class="uzone" id="uzone" onclick="document.getElementById('fi').click()"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleDrop(event)">
+            <div style="font-size:34px;margin-bottom:9px">📂</div>
+            <h3>Drop your file here or click to browse</h3>
+            <p>Supports Excel (.xlsx, .xls) and CSV files</p>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();document.getElementById('fi').click()">Browse Files</button>
+            <div class="ftags"><span class="ftag">.xlsx</span><span class="ftag">.xls</span><span class="ftag">.csv</span></div>
+          </div>
+          <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(event)">
+          <div id="up-status" style="display:none;margin-top:14px"></div>
+        </div>
+
+        <div class="card mb20">
+          <div class="card-title" style="margin-bottom:12px">Required Column Format</div>
+          <div class="twrap">
+            <table>
+              <thead><tr><th>Column Name</th><th>Required</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td class="tid">Employee ID</td><td><span class="chip ch-v">Required</span></td><td>Unique identifier (e.g. EMP001)</td></tr>
+                <tr><td class="tid">Employee Name</td><td><span class="chip ch-v">Required</span></td><td>Full name of employee</td></tr>
+                <tr><td class="tid">Department</td><td><span class="chip ch-v">Required</span></td><td>Team or department name</td></tr>
+                <tr><td class="tid">Food Preference</td><td><span class="chip ch-m">Recommended</span></td><td>e.g. Veg, Non-Veg, Vegan, Jain</td></tr>
+                <tr><td class="tid">Email ID</td><td><span class="chip ch-g">Optional</span></td><td>Corporate email address</td></tr>
+                <tr><td class="tid">Phone Number</td><td><span class="chip ch-g">Optional</span></td><td>Contact number</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:7px">Sample Template</div>
+          <p style="font-size:13px;color:var(--cg);margin-bottom:12px">Download a pre-filled template with required columns including Food Preference.</p>
+          <button class="btn btn-ghost btn-sm" onclick="downloadSample()">⬇️ Download Sample Template</button>
+        </div>
+      </div>
+
+      <!-- ── EMPLOYEES ── -->
+      <div class="page" id="page-employees">
+        <div class="ph">
+          <div class="cat-lbl">Data Management</div>
+          <div class="main-title">Employee Registry</div>
+          <div class="subtitle" id="emp-event-sub">Viewing: —</div>
+        </div>
+        <div class="dz" id="dz" style="display:none">
+          <div><h4>🗑️ Clear Employee Registry</h4><p>Permanently delete all employee records, check-in statuses, and issued passes for this event.</p></div>
+          <button class="btn btn-danger btn-sm" onclick="promptClear()">Clear All Records</button>
+        </div>
+        <div class="toolbar">
+          <input class="sinp" id="esearch" placeholder="Search name, ID, department…" oninput="filterEmps()">
+          <select class="fsel" id="ef-status" onchange="filterEmps()">
+            <option value="">All Status</option>
+            <option value="Checked In">Checked In</option>
+            <option value="Not Checked In">Not Checked In</option>
+          </select>
+          <select class="fsel" id="ef-pass" onchange="filterEmps()">
+            <option value="">All Passes</option>
+            <option value="Yes">Pass Issued</option>
+            <option value="No">No Pass</option>
+          </select>
+          <select class="fsel" id="ef-food" onchange="filterEmps()">
+            <option value="">All Food Prefs</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('filtered')">📤 Export Table View</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('all')">📤 Export All</button>
+          <span id="emp-lbl" style="font-size:12px;color:var(--cs);margin-left:auto"></span>
+        </div>
+        <div class="twrap">
+          <table>
+            <thead><tr><th>Employee ID</th><th>Name</th><th>Department</th><th>Food Pref</th><th>Email</th><th>Status</th><th>Pass</th><th>Pass Code</th><th>Timestamp</th></tr></thead>
+            <tbody id="emp-tbody"><tr><td colspan="9" style="text-align:center;padding:38px;color:var(--cg)">Upload an employee list to see records here.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── CHECK-IN ── -->
+      <div class="page" id="page-checkin">
+        <div class="ph">
+          <div class="cat-lbl">Event Operations</div>
+          <div class="main-title">Employee Check-In</div>
+          <div class="subtitle" id="checkin-event-sub">—</div>
+        </div>
+        <div class="clayout">
+          <div>
+            <div class="sbwrap">
+              <span class="sico">🔍</span>
+              <input type="text" id="ci-inp" placeholder="Enter Employee ID…" oninput="ciSearch(this.value)" onkeydown="if(event.key==='Enter')ciConfirm()" autocomplete="off" spellcheck="false">
+            </div>
+            <div id="ci-dd" style="display:none" class="sres"></div>
+            <div id="no-emp-msg"><div class="alert a-err"><span class="a-ico">✕</span><div class="a-body"><strong>Employee Not Registered</strong>This ID is not found in the registered list for this event.</div></div></div>
+            <div id="sel-emp">
+              <div class="ecrd">
+                <div class="ech">
+                  <div class="ecav" id="ec-init">?</div>
+                  <div><div class="ec-n" id="ec-name">—</div><div class="ec-id" id="ec-id">—</div><div class="ec-dept" id="ec-dept">—</div></div>
+                </div>
+                <div class="ecb">
+                  <div class="ecf"><span class="ecfl">Email</span><span class="ecfv" id="ec-email">—</span></div>
+                  <div class="ecf"><span class="ecfl">Phone</span><span class="ecfv" id="ec-phone">—</span></div>
+                  <div class="ecf"><span class="ecfl">Food Preference</span><span class="ecfv" id="ec-food">—</span></div>
+                  <div class="ecf"><span class="ecfl">Check-In Status</span><span id="ec-st">—</span></div>
+                  <div class="ecf"><span class="ecfl">Pass Issued</span><span id="ec-ps">—</span></div>
+                </div>
+                <div class="eca"><button class="btn btn-primary" id="ci-btn" onclick="doCheckIn()" style="flex:1">Check In &amp; Issue Pass</button></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div id="checkin-result"></div>
+            <div id="pass-display" style="display:none">
+              <div style="font-size:13px;font-weight:700;color:var(--cch);margin-bottom:11px">Generated Pass</div>
+              <div class="pcrd">
+                <div class="pch">
+                  <div><div class="pen" id="p-event-name">—</div><div class="pt">Attendee Pass · General Access</div></div>
+                  <div style="text-align:right"><div style="font-size:10px;color:rgba(255,255,255,.7)">Pass ID</div><div style="font-size:12px;font-weight:700;color:#fff" id="p-id">—</div></div>
+                </div>
+                <div class="pcb">
+                  <div class="pqr"><div id="p-qr"></div></div>
+                  <div><div class="p-n" id="p-name">—</div><div class="p-d" id="p-dept">—</div><div class="p-cl">Access Code</div><div class="p-c" id="p-code">—</div><div style="margin-top:9px"><span class="pill p-ok">✓ Verified &amp; Valid</span></div></div>
+                </div>
+                <div class="pcf"><span class="p-ts" id="p-ts">—</span><span class="p-v">✓ Pass Issued</span></div>
+              </div>
+              <div style="display:flex;gap:9px;margin-top:11px">
+                <button class="btn btn-ghost btn-sm" onclick="showToast('success','Print Queued','Pass sent to printer (demo)')">🖨️ Print Pass</button>
+                <button class="btn btn-outline btn-sm" onclick="resetCI()">New Check-In</button>
+              </div>
+            </div>
+            <div id="ci-empty" class="card"><div class="es" style="padding:38px"><div class="ei">🎫</div><h3>Ready for Check-In</h3><p>Search an Employee ID on the left to begin.</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS ── -->
+      <div class="page" id="page-reports">
+        <div class="ph">
+          <div class="cat-lbl">Analytics</div>
+          <div class="main-title">Reports &amp; Analytics</div>
+          <div class="subtitle" id="reports-event-sub">—</div>
+        </div>
+        <div class="rsumm">
+          <div class="rsc"><div class="rv" id="r-total" style="color:var(--cv)">0</div><div class="rl">Total Registered</div></div>
+          <div class="rsc"><div class="rv" id="r-cin" style="color:var(--cm)">0</div><div class="rl">Checked In</div></div>
+          <div class="rsc"><div class="rv" id="r-pass" style="color:var(--cp)">0</div><div class="rl">Passes Issued</div></div>
+        </div>
+        <div class="card mb20">
+          <div class="card-hd">
+            <div class="card-title">Department Summary</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" onclick="exportExcel('checkedin')">📤 Export Check-ins</button>
+              <button class="btn btn-ghost btn-sm" onclick="exportExcel('all')">📤 Export All</button>
+            </div>
+          </div>
+          <div id="dept-rpt"><div class="es" style="padding:24px"><div class="ei">📊</div><p>No data yet.</p></div></div>
+        </div>
+        <div class="card mb20">
+          <div class="card-hd"><div class="card-title">Food Preference Summary</div></div>
+          <div id="food-rpt"><div class="es" style="padding:24px"><div class="ei">🍽️</div><p>No food preference data yet.</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Check-In Records</div><div class="card-sub" id="cin-rec-cnt">0 records</div></div>
+          <div id="cin-recs"><div class="es" style="padding:24px"><div class="ei">📋</div><p>No check-in records yet.</p></div></div>
+        </div>
+      </div>
+
+      <!-- ── AUDIT ── -->
+      <div class="page" id="page-audit">
+        <div class="ph"><div class="cat-lbl">Compliance</div><div class="main-title">Audit Log</div><div class="subtitle">Complete record of all system activities</div></div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Activity History</div><div id="aud-cnt" class="card-sub">0 events</div></div>
+          <div id="aud-list"><div class="es" style="padding:38px"><div class="ei">🔍</div><h3>No audit entries</h3><p>Activity will appear here as events occur.</p></div></div>
+        </div>
+      </div>
+
+      <!-- ── EVENTS ── -->
+      <div class="page" id="page-events">
+        <div class="ph">
+          <div class="cat-lbl">Administration</div>
+          <div class="main-title">Event Management</div>
+          <div class="subtitle">Create, manage, and review events — each event maintains its own separate employee registry and check-in history</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+          <button class="btn btn-primary" onclick="openCreateEvent()">＋ Create New Event</button>
+        </div>
+        <div class="ev-grid" id="events-grid">
+          <div class="es" style="padding:38px;grid-column:1/-1"><div class="ei">🗓️</div><h3>No events found</h3></div>
+        </div>
+      </div>
+
+      <!-- ── USERS ── -->
+      <div class="page" id="page-users">
+        <div class="ph">
+          <div class="cat-lbl">Administration</div>
+          <div class="main-title">User Access Management</div>
+          <div class="subtitle">Create accounts, assign roles, and manage who can access the system</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+          <button class="btn btn-primary" onclick="openCreateUser()">＋ Add New User</button>
+        </div>
+        <div class="users-grid" id="users-grid"></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /layout -->
+  <div class="footer">© Centific. Confidential. All rights reserved. &nbsp;·&nbsp; Centific Event Pass Pro</div>
+</div><!-- /main-app -->
+</div><!-- /app -->
+
+<!-- ══════════ GLOBAL MODAL ══════════ -->
+<div class="overlay" id="global-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="gm-title">—</div>
+      <div class="modal-sub" id="gm-sub"></div>
+    </div>
+    <div class="modal-body" id="gm-body"></div>
+    <div class="modal-foot" id="gm-foot"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+var EVENTS = {
+  'EVT001': {
+    id:'EVT001', name:'Centific Annual Day Bash 2026',
+    date:'2026-03-15', status:'active',
+    emps:[], logs:[]
+  }
+};
+var USERS = [
+  {id:'u1', name:'Super Admin',   username:'admin',  password:'admin123', role:'admin',  color:'#CD128A'},
+  {id:'u2', name:'Event Staff 1', username:'staff1', password:'pass123',  role:'staff',  color:'#A12AD3'},
+  {id:'u3', name:'Viewer',        username:'viewer', password:'view123',  role:'viewer', color:'#707070'}
+];
+var currentEventId = 'EVT001';
+var currentUser = null;
+var pendData=null, pendFile='', pendMode=null, filteredEmps=[];
+var globalLogs = [];
+
+function curEvent(){ return EVENTS[currentEventId]; }
+function curEmps(){  return curEvent().emps; }
+
+/* ═══════════════════════════════
+   AUTH
+═══════════════════════════════ */
+function doLogin(){
+  var u=document.getElementById('lu').value.trim();
+  var p=document.getElementById('lp').value.trim();
+  var user=USERS.find(function(x){return x.username===u && x.password===p;});
+  if(user){
+    currentUser=user;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.cssText='display:flex;flex-direction:column;min-height:100vh';
+    set('topbar-av',user.name.charAt(0).toUpperCase());
+    set('topbar-uname',user.name);
+    set('topbar-role',user.role==='admin'?'Admin':user.role==='staff'?'Staff':'Viewer');
+    document.getElementById('admin-nav-section').style.display=user.role==='admin'?'block':'none';
+    initDemoData();
+    buildEventSwitcher();
+    switchEvent();
+    addLog('AUTH','User "'+user.username+'" ('+user.role+') signed in');
+    showToast('success','Welcome, '+user.name,'Signed in successfully');
+  } else showToast('danger','Login Failed','Invalid username or password');
+}
+document.getElementById('lp').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('lu').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+function doLogout(){
+  addLog('AUTH','User "'+currentUser.username+'" signed out');
+  currentUser=null;
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('main-app').style.display='none';
+}
+
+/* ═══════════════════════════════
+   DEMO DATA
+═══════════════════════════════ */
+var FOOD_OPTIONS=['Veg','Non-Veg','Vegan','Jain'];
+function initDemoData(){
+  var names=[['Arjun Sharma','Engineering'],['Priya Nair','Product'],['Rahul Mehta','Marketing'],
+    ['Sneha Reddy','HR'],['Vikram Rao','Finance'],['Divya Krishnan','Engineering'],
+    ['Karthik Iyer','Sales'],['Anjali Patel','Product'],['Suresh Kumar','Engineering'],['Meera Pillai','Marketing']];
+  var foods=['Veg','Non-Veg','Veg','Jain','Non-Veg','Vegan','Non-Veg','Veg','Non-Veg','Veg'];
+  EVENTS['EVT001'].emps=names.map(function(n,i){
+    return{id:'EMP00'+(i+1),name:n[0],dept:n[1],food:foods[i],email:n[0].toLowerCase().replace(' ','.')+'@centific.com',phone:'+91 9876500'+(100+i),status:'Not Checked In',pass:'No',code:'',ts:''};
+  });
+  addLog('SYSTEM','Demo data loaded for "Centific Annual Day Bash 2026"');
+}
+
+/* ═══════════════════════════════
+   EVENT SWITCHER
+═══════════════════════════════ */
+function buildEventSwitcher(){
+  var sel=document.getElementById('event-switcher');
+  sel.innerHTML='';
+  Object.values(EVENTS).forEach(function(ev){
+    var opt=document.createElement('option');
+    opt.value=ev.id; opt.textContent=ev.name+(ev.status==='active'?' ●':'');
+    if(ev.id===currentEventId)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+function switchEvent(){
+  var sel=document.getElementById('event-switcher');
+  currentEventId=sel.value;
+  var ev=curEvent();
+  set('dash-event-title',ev.name);
+  set('dash-event-sub','Real-time overview · '+formatDate(ev.date));
+  set('upload-event-sub','Uploading to: '+ev.name);
+  set('emp-event-sub','Viewing: '+ev.name);
+  set('checkin-event-sub',ev.name+' · '+formatDate(ev.date));
+  set('reports-event-sub',ev.name);
+  filteredEmps=curEmps().slice();
+  updateAll();
+  resetCI();
+}
+function formatDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});}catch(e){return d;}}
+
+/* ═══════════════════════════════
+   NAVIGATION
+═══════════════════════════════ */
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.si').forEach(function(i){i.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='reports')renderReports();
+  if(name==='employees'){filteredEmps=applyFilters();renderEmpTable();document.getElementById('dz').style.display=curEmps().length>0?'flex':'none';}
+  if(name==='audit')renderAudit();
+  if(name==='events')renderEventsPage();
+  if(name==='users')renderUsersPage();
+}
+function set(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+
+/* ═══════════════════════════════
+   DASHBOARD
+═══════════════════════════════ */
+function updateAll(){
+  var emps=curEmps();
+  var tot=emps.length,cin=emps.filter(function(e){return e.status==='Checked In';}).length;
+  var ps=emps.filter(function(e){return e.pass==='Yes';}).length,nc=tot-cin;
+  var pct=tot>0?Math.round(cin/tot*100):0;
+  set('s-total',tot);set('s-cin',cin);set('s-pass',ps);set('s-notcin',nc);
+  set('s-cin-pct',pct+'% of total');set('s-pass-pct',cin>0?Math.round(ps/cin*100)+'% of checked in':'0%');
+  document.getElementById('pb-cin').style.width=pct+'%';
+  set('sb-pending',nc);
+  renderActivity();renderFoodDonut();renderHourly();
+}
+
+function renderActivity(){
+  var recent=curEmps().filter(function(e){return e.status==='Checked In';}).slice(-6).reverse();
+  set('act-count',recent.length+' today');
+  var el=document.getElementById('act-list');
+  if(!recent.length){el.innerHTML='<div class="es" style="padding:20px"><div class="ei">🕐</div><p>No check-ins yet.</p></div>';return;}
+  el.innerHTML=recent.map(function(e){
+    return '<div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid #F0F0F0">'+
+      '<div style="width:30px;height:30px;border-radius:var(--r);background:var(--gsc);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--cm);flex-shrink:0">'+e.name.charAt(0)+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;color:var(--cch)">'+e.name+'</div><div style="font-size:11px;color:var(--cg)">'+e.dept+' · '+e.id+'</div></div>'+
+      '<div style="font-size:11px;color:var(--cs)">'+(e.ts?e.ts.split(' ')[1]:'—')+'</div></div>';
+  }).join('');
+}
+
+/* ─── FOOD DONUT CHART ─── */
+var FOOD_COLORS=['#CD128A','#A12AD3','#EF43B3','#FACAE9','#707070','#A3A4A6'];
+function getFoodBreakdown(){
+  var emps=curEmps();var d={};
+  emps.forEach(function(e){var f=e.food||'Not Specified';if(!d[f])d[f]=0;d[f]++;});
+  return d;
+}
+function renderFoodDonut(){
+  var data=getFoodBreakdown();var keys=Object.keys(data);var total=curEmps().length;
+  var el=document.getElementById('food-donut-wrap');
+  set('food-total-lbl',total+' responses');
+  if(!keys.length||total===0){el.innerHTML='<div class="es" style="padding:22px"><div class="ei">🍽️</div><p>Upload employee list with Food Preference column to see breakdown.</p></div>';return;}
+  var vals=keys.map(function(k){return data[k];});
+  var cx=80,cy=80,r=62,inner=36;
+  var total2=vals.reduce(function(a,b){return a+b;},0);
+  var slices='';var start=0;
+  for(var i=0;i<keys.length;i++){
+    var pct=vals[i]/total2;var angle=pct*2*Math.PI;
+    var x1=cx+r*Math.sin(start),y1=cy-r*Math.cos(start);
+    var x2=cx+r*Math.sin(start+angle),y2=cy-r*Math.cos(start+angle);
+    var xi1=cx+inner*Math.sin(start),yi1=cy-inner*Math.cos(start);
+    var xi2=cx+inner*Math.sin(start+angle),yi2=cy-inner*Math.cos(start+angle);
+    var large=pct>0.5?1:0;
+    var col=FOOD_COLORS[i%FOOD_COLORS.length];
+    if(pct>0.995){
+      slices+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'"/>';
+      slices+='<circle cx="'+cx+'" cy="'+cy+'" r="'+inner+'" fill="white"/>';
+    } else {
+      slices+='<path d="M'+xi1+','+yi1+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' L'+xi2+','+yi2+' A'+inner+','+inner+' 0 '+large+',0 '+xi1+','+yi1+' Z" fill="'+col+'"/>';
+    }
+    start+=angle;
+  }
+  var centerLabel='<text x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle" font-family="DM Sans,Arial,sans-serif" font-size="20" font-weight="400" fill="#A12AD3">'+total2+'</text>'+
+    '<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" font-family="DM Sans,Arial,sans-serif" font-size="10" fill="#707070">total</text>';
+  var svg='<svg width="160" height="160" class="donut-svg" viewBox="0 0 160 160">'+slices+centerLabel+'</svg>';
+  var legend=keys.map(function(k,i){
+    var pct2=Math.round(data[k]/total2*100);
+    return '<div class="dl-row"><div class="dl-dot" style="background:'+FOOD_COLORS[i%FOOD_COLORS.length]+'"></div>'+
+      '<span class="dl-lbl">'+k+'</span>'+
+      '<span class="dl-cnt">'+data[k]+'</span>'+
+      '<span class="dl-pct">'+pct2+'%</span></div>';
+  }).join('');
+  el.innerHTML='<div class="donut-wrap">'+svg+'<div class="donut-legend">'+legend+'</div></div>';
+}
+
+function renderHourly(){
+  var hrs=new Array(10).fill(0);
+  curEmps().filter(function(e){return e.status==='Checked In';}).forEach(function(e){
+    if(e.ts){var h=parseInt(e.ts.split(':')[0].split(' ')[1])||9;hrs[Math.min(Math.max(h-8,0),9)]++;}
+  });
+  var mx=Math.max.apply(null,hrs.concat([1]));
+  var lb=['8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm'];
+  document.getElementById('h-chart').innerHTML=hrs.map(function(v,i){
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:90px">'+
+      '<span style="font-size:10px;color:var(--cv);font-weight:600">'+(v>0?v:'')+'</span>'+
+      '<div style="width:100%;background:'+(v>0?'var(--gsc)':'var(--clv)')+';border-radius:2px 2px 0 0;height:'+(Math.round(v/mx*64)+4)+'px;border:1px solid '+(v>0?'var(--cbl)':'transparent')+';transition:height .4s"></div>'+
+      '<span style="font-size:9px;color:var(--cs)">'+lb[i]+'</span></div>';
+  }).join('');
+}
+
+/* ═══════════════════════════════
+   EVENTS PAGE
+═══════════════════════════════ */
+function renderEventsPage(){
+  var grid=document.getElementById('events-grid');
+  var evArr=Object.values(EVENTS);
+  if(!evArr.length){grid.innerHTML='<div class="es" style="padding:38px;grid-column:1/-1"><div class="ei">🗓️</div><h3>No events yet</h3><p>Create your first event to get started.</p></div>';return;}
+  grid.innerHTML=evArr.map(function(ev){
+    var emps=ev.emps||[];var cin=emps.filter(function(e){return e.status==='Checked In';}).length;
+    var ps=emps.filter(function(e){return e.pass==='Yes';}).length;
+    var statusChip=ev.status==='active'?'<span class="ev-status-chip ev-active">● Active</span>':ev.status==='upcoming'?'<span class="ev-status-chip ev-upcoming">↑ Upcoming</span>':'<span class="ev-status-chip ev-past">Archive</span>';
+    var isActive=ev.id===currentEventId;
+    return '<div class="ev-card'+(isActive?' active-ev':'')+'" onclick="setActiveEvent(\''+ev.id+'\')">'+
+      '<div class="ev-card-header"><h3>'+ev.name+'</h3><div class="ev-date">'+formatDate(ev.date)+'</div></div>'+
+      '<div class="ev-card-body">'+
+      '<div class="ev-stat-row">'+
+        '<div class="ev-stat"><div class="v">'+emps.length+'</div><div class="l">Registered</div></div>'+
+        '<div class="ev-stat"><div class="v" style="color:var(--cm)">'+cin+'</div><div class="l">Checked in</div></div>'+
+        '<div class="ev-stat"><div class="v">'+ps+'</div><div class="l">Passes</div></div>'+
+      '</div>'+statusChip+'</div>'+
+      '<div class="ev-card-footer">'+
+        (isActive?'<span style="font-size:11px;font-weight:700;color:var(--cm)">✓ Currently Active</span>':'<span style="font-size:11px;color:var(--cg)">Click to switch</span>')+
+        '<div style="display:flex;gap:7px">'+
+          '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editEvent(\''+ev.id+'\')" '+(currentUser&&currentUser.role==='admin'?'':'disabled')+'>Edit</button>'+
+          '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteEvent(\''+ev.id+'\')" '+(currentUser&&currentUser.role==='admin'?'':'disabled')+' style="'+(Object.keys(EVENTS).length<=1?'opacity:.3;cursor:not-allowed':'')+'">Delete</button>'+
+        '</div>'+
+      '</div></div>';
+  }).join('');
+}
+
+function setActiveEvent(id){
+  currentEventId=id;
+  buildEventSwitcher();
+  switchEvent();
+  renderEventsPage();
+  showToast('success','Event Switched',curEvent().name+' is now active');
+}
+
+function openCreateEvent(){
+  if(!currentUser||currentUser.role!=='admin'){showToast('danger','Access Denied','Only admins can create events');return;}
+  openModal('Create New Event','Fill in the details below.',
+    '<div class="fg"><label>Event Name</label><input type="text" id="m-ev-name" placeholder="e.g. Centific Annual Day Bash 2027"></div>'+
+    '<div class="fg"><label>Event Date</label><input type="date" id="m-ev-date"></div>'+
+    '<div class="fg"><label>Status</label><select id="m-ev-status"><option value="upcoming">Upcoming</option><option value="active">Active</option></select></div>',
+    '<button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn btn-primary" style="flex:1" onclick="createEvent()">Create Event</button>'
+  );
+}
+
+function createEvent(){
+  var name=document.getElementById('m-ev-name').value.trim();
+  var date=document.getElementById('m-ev-date').value;
+  var status=document.getElementById('m-ev-status').value;
+  if(!name){showToast('danger','Missing Name','Please enter an event name');return;}
+  var id='EVT'+Date.now();
+  EVENTS[id]={id:id,name:name,date:date,status:status,emps:[],logs:[]};
+  closeModal();
+  buildEventSwitcher();
+  renderEventsPage();
+  addLog('EVENT','Event created: "'+name+'" ('+status+')');
+  showToast('success','Event Created','"'+name+'" has been added');
+}
+
+function editEvent(id){
+  if(!currentUser||currentUser.role!=='admin'){showToast('danger','Access Denied','Only admins can edit events');return;}
+  var ev=EVENTS[id];
+  openModal('Edit Event','Update event details.',
+    '<div class="fg"><label>Event Name</label><input type="text" id="m-ev-name" value="'+ev.name+'"></div>'+
+    '<div class="fg"><label>Event Date</label><input type="date" id="m-ev-date" value="'+(ev.date||'')+'"></div>'+
+    '<div class="fg"><label>Status</label><select id="m-ev-status">'+
+      ['active','upcoming','past'].map(function(s){return'<option value="'+s+'"'+(ev.status===s?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>';}).join('')+
+    '</select></div>',
+    '<button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn btn-primary" style="flex:1" onclick="saveEvent(\''+id+'\')">Save Changes</button>'
+  );
+}
+
+function saveEvent(id){
+  var name=document.getElementById('m-ev-name').value.trim();
+  if(!name){showToast('danger','Missing Name','Event name is required');return;}
+  EVENTS[id].name=name;
+  EVENTS[id].date=document.getElementById('m-ev-date').value;
+  EVENTS[id].status=document.getElementById('m-ev-status').value;
+  closeModal();buildEventSwitcher();switchEvent();renderEventsPage();
+  addLog('EVENT','Event updated: "'+name+'"');
+  showToast('success','Event Updated','"'+name+'" saved');
+}
+
+function deleteEvent(id){
+  if(Object.keys(EVENTS).length<=1){showToast('danger','Cannot Delete','At least one event must exist');return;}
+  var ev=EVENTS[id];
+  if(!confirm('⚠️ Delete "'+ev.name+'" and ALL its data? This cannot be undone.'))return;
+  delete EVENTS[id];
+  if(currentEventId===id)currentEventId=Object.keys(EVENTS)[0];
+  buildEventSwitcher();switchEvent();renderEventsPage();
+  addLog('EVENT','Event deleted: "'+ev.name+'"');
+  showToast('warn','Event Deleted','"'+ev.name+'" removed');
+}
+
+/* ═══════════════════════════════
+   USER MANAGEMENT
+═══════════════════════════════ */
+var ROLE_COLORS={admin:'#CD128A',staff:'#A12AD3',viewer:'#707070'};
+function renderUsersPage(){
+  var grid=document.getElementById('users-grid');
+  grid.innerHTML=USERS.map(function(u){
+    var canEdit=currentUser&&currentUser.role==='admin';
+    var roleLabel=u.role==='admin'?'Admin':u.role==='staff'?'Staff':'Viewer';
+    return '<div class="user-card">'+
+      '<div class="user-av-lg" style="background:'+ROLE_COLORS[u.role]+'">'+u.name.charAt(0)+'</div>'+
+      '<div class="user-info">'+
+        '<div class="user-name">'+u.name+'</div>'+
+        '<div class="user-un">@'+u.username+'</div>'+
+        '<span class="user-role-badge role-'+u.role+'">'+roleLabel+'</span>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">'+
+        (canEdit&&u.id!=='u1'?'<button class="btn btn-ghost btn-sm" onclick="editUser(\''+u.id+'\')">Edit</button>':'<button class="btn btn-ghost btn-sm" disabled style="opacity:.3">Edit</button>')+
+        (canEdit&&u.id!=='u1'?'<button class="btn btn-danger btn-sm" onclick="deleteUser(\''+u.id+'\')">Remove</button>':'<button class="btn btn-ghost btn-sm" disabled style="opacity:.3">Remove</button>')+
+      '</div></div>';
+  }).join('');
+}
+
+function openCreateUser(){
+  if(!currentUser||currentUser.role!=='admin'){showToast('danger','Access Denied','Only admins can add users');return;}
+  openModal('Add New User','Create access credentials for a new team member.',
+    '<div class="fg"><label>Full Name</label><input type="text" id="m-u-name" placeholder="e.g. Jane Smith"></div>'+
+    '<div class="fg"><label>Username</label><input type="text" id="m-u-un" placeholder="e.g. jane.smith"></div>'+
+    '<div class="fg"><label>Password</label><input type="password" id="m-u-pw" placeholder="Set a password"></div>'+
+    '<div class="fg"><label>Role</label><select id="m-u-role"><option value="staff">Staff — Can check in employees</option><option value="viewer">Viewer — Read-only access</option><option value="admin">Admin — Full access</option></select></div>',
+    '<button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn btn-primary" style="flex:1" onclick="createUser()">Add User</button>'
+  );
+}
+
+function createUser(){
+  var name=document.getElementById('m-u-name').value.trim();
+  var un=document.getElementById('m-u-un').value.trim();
+  var pw=document.getElementById('m-u-pw').value;
+  var role=document.getElementById('m-u-role').value;
+  if(!name||!un||!pw){showToast('danger','Missing Fields','Name, username, and password are required');return;}
+  if(USERS.find(function(u){return u.username===un;})){showToast('danger','Username Taken','Choose a different username');return;}
+  var id='u'+Date.now();
+  USERS.push({id:id,name:name,username:un,password:pw,role:role,color:ROLE_COLORS[role]});
+  closeModal();renderUsersPage();
+  addLog('USER','New user created: "'+un+'" ('+role+')');
+  showToast('success','User Created','@'+un+' can now sign in');
+}
+
+function editUser(id){
+  var u=USERS.find(function(x){return x.id===id;});
+  openModal('Edit User','Update account details for '+u.name+'.',
+    '<div class="fg"><label>Full Name</label><input type="text" id="m-u-name" value="'+u.name+'"></div>'+
+    '<div class="fg"><label>Username</label><input type="text" id="m-u-un" value="'+u.username+'"></div>'+
+    '<div class="fg"><label>New Password</label><input type="password" id="m-u-pw" placeholder="Leave blank to keep current"></div>'+
+    '<div class="fg"><label>Role</label><select id="m-u-role">'+
+      ['admin','staff','viewer'].map(function(r){return'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r.charAt(0).toUpperCase()+r.slice(1)+'</option>';}).join('')+
+    '</select></div>',
+    '<button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn btn-primary" style="flex:1" onclick="saveUser(\''+id+'\')">Save Changes</button>'
+  );
+}
+
+function saveUser(id){
+  var u=USERS.find(function(x){return x.id===id;});
+  u.name=document.getElementById('m-u-name').value.trim()||u.name;
+  u.username=document.getElementById('m-u-un').value.trim()||u.username;
+  var pw=document.getElementById('m-u-pw').value;if(pw)u.password=pw;
+  u.role=document.getElementById('m-u-role').value;
+  u.color=ROLE_COLORS[u.role];
+  closeModal();renderUsersPage();
+  addLog('USER','User updated: "'+u.username+'"');
+  showToast('success','User Updated','@'+u.username+' saved');
+}
+
+function deleteUser(id){
+  var u=USERS.find(function(x){return x.id===id;});
+  if(!confirm('Remove "'+u.name+'" (@'+u.username+')? They will no longer be able to sign in.'))return;
+  USERS=USERS.filter(function(x){return x.id!==id;});
+  addLog('USER','User removed: "'+u.username+'"');renderUsersPage();
+  showToast('warn','User Removed','@'+u.username+' access revoked');
+}
+
+/* ═══════════════════════════════
+   FILE IMPORT
+═══════════════════════════════ */
+function handleFileSelect(e){var f=e.target.files[0];if(f)readFile(f);e.target.value='';}
+function handleDrop(e){e.preventDefault();document.getElementById('uzone').classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f)readFile(f);}
+function readFile(f){
+  var ext=f.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv'].includes(ext)){showToast('danger','Invalid File','Please upload .xlsx, .xls, or .csv');return;}
+  var r=new FileReader();
+  r.onload=function(e){
+    try{var wb=XLSX.read(e.target.result,{type:'binary'});var ws=wb.Sheets[wb.SheetNames[0]];
+      pendData=XLSX.utils.sheet_to_json(ws,{defval:''});pendFile=f.name;showImpModal(pendData,f.name);
+    }catch(err){showToast('danger','Parse Error','Could not read file: '+err.message);}
+  };r.readAsBinaryString(f);
+}
+function showImpModal(data,fname){
+  pendMode=null;
+  var emps=curEmps();
+  var ci=emps.filter(function(e){return e.status==='Checked In';}).length;
+  var ps=emps.filter(function(e){return e.pass==='Yes';}).length;
+  set('dlg-fname',fname);set('dlg-frows',data.length+' rows');
+  set('dlg-ex',emps.length);set('dlg-ci',ci);set('dlg-ps',ps);set('dlg-nr',data.length);
+  document.getElementById('opt-merge').className='mopt';document.getElementById('opt-clear').className='mopt';
+  document.getElementById('m-warn').style.display='none';
+  var btn=document.getElementById('confirm-btn');btn.disabled=true;btn.style.cssText='flex:1;background:var(--cs);color:var(--cw);cursor:not-allowed';btn.textContent='Select an option ↑';
+  document.getElementById('imp-container').style.display='block';
+  document.getElementById('up-status').style.display='none';
+}
+function selMode(m){
+  pendMode=m;
+  document.getElementById('opt-merge').className='mopt'+(m==='merge'?' sel-m':'');
+  document.getElementById('opt-clear').className='mopt'+(m==='clear'?' sel-c':'');
+  var emps=curEmps();var ci=emps.filter(function(e){return e.status==='Checked In';}).length;var ps=emps.filter(function(e){return e.pass==='Yes';}).length;
+  var warn=document.getElementById('m-warn');
+  if(m==='clear'&&(ci>0||ps>0)){warn.style.display='block';document.getElementById('mw-text').textContent='You have '+ci+' checked-in employee(s) and '+ps+' issued pass(es) that will be permanently erased.';}else warn.style.display='none';
+  var btn=document.getElementById('confirm-btn');btn.disabled=false;
+  if(m==='merge'){btn.style.cssText='flex:1;background:var(--cm);color:var(--cw);cursor:pointer';btn.textContent='✓ Merge & Import';}
+  else{btn.style.cssText='flex:1;background:#e53935;color:var(--cw);cursor:pointer';btn.textContent='🗑 Clear & Import';}
+}
+function cancelImport(){document.getElementById('imp-container').style.display='none';pendData=null;pendFile='';pendMode=null;}
+function confirmImport(){
+  if(!pendData||!pendMode)return;
+  if(pendMode==='clear'){
+    var ci=curEmps().filter(function(e){return e.status==='Checked In';}).length;var ps=curEmps().filter(function(e){return e.pass==='Yes';}).length;
+    if((ci>0||ps>0)&&!confirm('⚠️ Permanently delete '+curEmps().length+' records including '+ci+' check-in(s) and '+ps+' pass(es)?\n\nThis cannot be undone.'))return;
+    var clr=curEmps().length;EVENTS[currentEventId].emps=[];
+    addLog('CLEAR','Registry cleared — '+clr+' records deleted');showToast('warn','Registry Cleared',clr+' records removed');
+  }
+  document.getElementById('imp-container').style.display='none';
+  doImport(pendData,pendFile,pendMode);pendData=null;pendFile='';pendMode=null;
+}
+function doImport(data,fname,mode){
+  var cmap={id:['Employee ID','employee id','EmployeeID','emp_id','ID'],name:['Employee Name','employee name','Name'],dept:['Department','department','dept'],food:['Food Preference','food_preference','Food','FoodPref','food preference'],email:['Email ID','Email','email'],phone:['Phone Number','Phone','phone','Mobile']};
+  function fc(row,keys){for(var i=0;i<keys.length;i++)if(row[keys[i]]!==undefined)return keys[i];return null;}
+  var first=data[0]||{},cols={};for(var k in cmap)cols[k]=fc(first,cmap[k]);
+  if(!cols.id||!cols.name){showToast('danger','Missing Columns','File must have "Employee ID" and "Employee Name"');return;}
+  var dup=0,add=0,upd=0,seen={};curEmps().forEach(function(e){seen[e.id]=true;});
+  data.forEach(function(row){
+    var eid=String(row[cols.id]||'').trim();if(!eid)return;
+    if(seen[eid]){var ex=curEmps().find(function(e){return e.id===eid;});
+      if(ex&&mode==='merge'){ex.name=String(row[cols.name]||ex.name).trim();ex.dept=cols.dept?String(row[cols.dept]||ex.dept).trim():ex.dept;ex.food=cols.food?String(row[cols.food]||ex.food||'').trim():ex.food;ex.email=cols.email?String(row[cols.email]||ex.email).trim():ex.email;ex.phone=cols.phone?String(row[cols.phone]||ex.phone).trim():ex.phone;upd++;}else dup++;return;}
+    seen[eid]=true;
+    curEmps().push({id:eid,name:String(row[cols.name]||'').trim(),dept:cols.dept?String(row[cols.dept]||'General').trim():'General',food:cols.food?String(row[cols.food]||'').trim():'',email:cols.email?String(row[cols.email]||'').trim():'',phone:cols.phone?String(row[cols.phone]||'').trim():'',status:'Not Checked In',pass:'No',code:'',ts:''});add++;
+  });
+  var ml=mode==='merge'?'Merge':'Clear & Replace';
+  var msg='Mode: '+ml+' — '+add+' added, '+upd+' updated, '+dup+' duplicates skipped.';
+  document.getElementById('up-status').style.display='block';
+  document.getElementById('up-status').innerHTML='<div class="alert a-ok"><span class="a-ico">✓</span><div class="a-body"><strong>Import Successful — '+fname+'</strong>'+msg+'</div></div>';
+  addLog('UPLOAD','"'+fname+'" imported ['+ml+'] — '+add+' new, '+upd+' updated, '+dup+' skipped');
+  showToast('success','Import Complete',msg);filteredEmps=curEmps().slice();updateAll();
+  document.getElementById('dz').style.display=curEmps().length>0?'flex':'none';
+  populateFoodFilter();
+}
+function downloadSample(){
+  var d=[{'Employee ID':'EMP001','Employee Name':'Arjun Sharma','Department':'Engineering','Food Preference':'Veg','Email ID':'arjun@centific.com','Phone Number':'+91 9876543210'},{'Employee ID':'EMP002','Employee Name':'Priya Nair','Department':'Product','Food Preference':'Non-Veg','Email ID':'priya@centific.com','Phone Number':'+91 8765432109'},{'Employee ID':'EMP003','Employee Name':'Rahul Mehta','Department':'Marketing','Food Preference':'Jain','Email ID':'rahul@centific.com','Phone Number':'+91 7654321098'}];
+  var ws=XLSX.utils.json_to_sheet(d);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'Employees',ws);XLSX.writeFile(wb,'Centific_EventPass_Sample.xlsx');
+  showToast('success','Downloaded','Sample template saved');
+}
+
+/* ═══════════════════════════════
+   EMPLOYEES TABLE
+═══════════════════════════════ */
+function populateFoodFilter(){
+  var sel=document.getElementById('ef-food');var cur=sel.value;
+  var foods=[...new Set(curEmps().map(function(e){return e.food;}).filter(Boolean))];
+  sel.innerHTML='<option value="">All Food Prefs</option>';
+  foods.forEach(function(f){var o=document.createElement('option');o.value=f;o.textContent=f;if(f===cur)o.selected=true;sel.appendChild(o);});
+}
+function applyFilters(){
+  var q=(document.getElementById('esearch').value||'').toLowerCase();
+  var sf=document.getElementById('ef-status').value,pf=document.getElementById('ef-pass').value,ff=document.getElementById('ef-food').value;
+  return curEmps().filter(function(e){
+    var m=e.name.toLowerCase().includes(q)||e.id.toLowerCase().includes(q)||(e.dept||'').toLowerCase().includes(q);
+    if(!m)return false;if(sf&&e.status!==sf)return false;if(pf&&e.pass!==pf)return false;if(ff&&(e.food||'')!==ff)return false;return true;
+  });
+}
+function renderEmpTable(){
+  set('emp-lbl',filteredEmps.length+' of '+curEmps().length+' records');
+  var tb=document.getElementById('emp-tbody');
+  if(!filteredEmps.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--cg)">'+(curEmps().length===0?'Upload an employee list to see records.':'No records match the current filters.')+'</td></tr>';return;}
+  tb.innerHTML=filteredEmps.map(function(e){
+    return '<tr><td class="tid">'+e.id+'</td><td style="font-weight:500">'+e.name+'</td><td>'+e.dept+'</td>'+
+      '<td><span class="chip ch-m" style="font-size:10px">'+(e.food||'—')+'</span></td>'+
+      '<td style="color:var(--cg);font-size:12px">'+(e.email||'—')+'</td>'+
+      '<td>'+(e.status==='Checked In'?'<span class="pill p-ok">✓ Checked In</span>':'<span class="pill p-warn">Pending</span>')+'</td>'+
+      '<td>'+(e.pass==='Yes'?'<span class="pill p-ok">✓ Yes</span>':'<span class="pill p-gray">No</span>')+'</td>'+
+      '<td><span style="font-family:monospace;font-size:11px;color:var(--cm)">'+(e.code||'—')+'</span></td>'+
+      '<td style="font-size:11px;color:var(--cs)">'+(e.ts||'—')+'</td></tr>';
+  }).join('');
+}
+function filterEmps(){filteredEmps=applyFilters();renderEmpTable();}
+function promptClear(){
+  var ci=curEmps().filter(function(e){return e.status==='Checked In';}).length;var ps=curEmps().filter(function(e){return e.pass==='Yes';}).length;
+  if(!confirm('⚠️ Permanently delete all '+curEmps().length+' records'+(ci>0||ps>0?', including '+ci+' check-in(s) and '+ps+' pass(es)':'')+' for this event?\n\nThis cannot be undone.'))return;
+  var clr=curEmps().length;EVENTS[currentEventId].emps=[];filteredEmps=[];
+  addLog('CLEAR','Manual registry clear — '+clr+' records deleted');showToast('warn','Registry Cleared',clr+' records removed');
+  renderEmpTable();document.getElementById('dz').style.display='none';updateAll();
+}
+
+/* ═══════════════════════════════
+   EXPORT
+═══════════════════════════════ */
+function exportExcel(mode){
+  var source,filename,ts=new Date().toISOString().slice(0,10);
+  var evName=curEvent().name.replace(/\s+/g,'_');
+  if(mode==='filtered'){source=filteredEmps;filename='Centific_'+evName+'_TableView_'+ts+'.xlsx';if(!source.length){showToast('warn','No Data','No records match the current filter');return;}}
+  else if(mode==='checkedin'){source=curEmps().filter(function(e){return e.status==='Checked In';});filename='Centific_'+evName+'_CheckedIn_'+ts+'.xlsx';if(!source.length){showToast('warn','No Data','No checked-in employees yet');return;}}
+  else{source=curEmps();filename='Centific_'+evName+'_AllRecords_'+ts+'.xlsx';if(!source.length){showToast('warn','No Data','Upload employee data first');return;}}
+  var rows=source.map(function(e){return{'Employee ID':e.id,'Employee Name':e.name,'Department':e.dept,'Food Preference':e.food||'','Email ID':e.email,'Phone Number':e.phone,'Check-In Status':e.status,'Pass Issued':e.pass,'Pass Code':e.code,'Check-In Timestamp':e.ts};});
+  var ws=XLSX.utils.json_to_sheet(rows);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'Report',ws);XLSX.writeFile(wb,filename);
+  addLog('EXPORT','Excel exported: '+source.length+' rows → '+filename);showToast('success','Export Complete',source.length+' records downloaded');
+}
+
+/* ═══════════════════════════════
+   CHECK-IN
+═══════════════════════════════ */
+var curEmp=null;
+function ciSearch(v){
+  var q=v.trim().toLowerCase();
+  document.getElementById('no-emp-msg').style.display='none';document.getElementById('sel-emp').style.display='none';document.getElementById('ci-dd').style.display='none';resetCIUI();
+  if(!q)return;
+  var m=curEmps().filter(function(e){return e.id.toLowerCase().includes(q)||e.name.toLowerCase().includes(q);}).slice(0,6);
+  if(!m.length&&q.length>=2){document.getElementById('no-emp-msg').style.display='block';return;}
+  if(m.length){var dd=document.getElementById('ci-dd');dd.style.display='block';
+    dd.innerHTML=m.map(function(e){return'<div class="sri" onclick="selEmp(\''+e.id+'\')"><div class="sri-name">'+e.name+'</div><div class="sri-meta">'+e.id+' · '+e.dept+(e.food?' · 🍽 '+e.food:'')+' · <span style="color:'+(e.status==='Checked In'?'var(--cv)':'var(--cg)')+'">'+e.status+'</span></div></div>';}).join('');}
+}
+function selEmp(id){
+  var emp=curEmps().find(function(e){return e.id===id;});if(!emp)return;curEmp=emp;
+  document.getElementById('ci-dd').style.display='none';document.getElementById('ci-inp').value=emp.id;
+  document.getElementById('no-emp-msg').style.display='none';document.getElementById('sel-emp').style.display='block';
+  var init=emp.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
+  set('ec-init',init);set('ec-name',emp.name);set('ec-id',emp.id);set('ec-dept',emp.dept);set('ec-email',emp.email||'—');set('ec-phone',emp.phone||'—');set('ec-food',emp.food||'Not Specified');
+  var st=document.getElementById('ec-st'),ps=document.getElementById('ec-ps'),btn=document.getElementById('ci-btn');
+  if(emp.status==='Checked In'){
+    st.innerHTML='<span class="pill p-ok">✓ Checked In</span>';ps.innerHTML=emp.pass==='Yes'?'<span class="pill p-ok">✓ Issued</span>':'<span class="pill p-warn">No</span>';
+    btn.disabled=true;btn.style.cssText='flex:1;background:var(--cs);color:var(--cw);cursor:not-allowed';btn.textContent='Already Checked In';
+    document.getElementById('ci-empty').style.display='none';document.getElementById('checkin-result').style.display='block';
+    document.getElementById('checkin-result').innerHTML='<div class="alert a-warn"><span class="a-ico">⚠</span><div class="a-body"><strong>Already Checked In</strong>Pass already issued for '+emp.id+'. Timestamp: '+(emp.ts||'Unknown')+'</div></div>';
+    if(emp.code)renderPass(emp);
+  } else {
+    st.innerHTML='<span class="pill p-warn">Pending</span>';ps.innerHTML='<span class="pill p-gray">Not Issued</span>';
+    btn.disabled=false;btn.style.cssText='flex:1';btn.textContent='Check In & Issue Pass';
+  }
+}
+function ciConfirm(){var q=document.getElementById('ci-inp').value.trim();var e=curEmps().find(function(e){return e.id.toLowerCase()===q.toLowerCase();});if(e)selEmp(e.id);else if(q)document.getElementById('no-emp-msg').style.display='block';}
+function doCheckIn(){
+  if(!curEmp||curEmp.status==='Checked In')return;
+  var now=new Date();var ts=now.toLocaleDateString('en-IN')+' '+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  var code=genCode(curEmp.id);
+  curEmp.status='Checked In';curEmp.pass='Yes';curEmp.code=code;curEmp.ts=ts;
+  addLog('CHECKIN','Employee '+curEmp.id+' ('+curEmp.name+') checked in — Pass: '+code+' by '+currentUser.username);
+  showToast('success','Check-In Successful',curEmp.name+' — Pass: '+code);
+  selEmp(curEmp.id);
+  document.getElementById('ci-empty').style.display='none';document.getElementById('checkin-result').style.display='block';
+  document.getElementById('checkin-result').innerHTML='<div class="alert a-ok"><span class="a-ico">✓</span><div class="a-body"><strong>Check-In Successful</strong>'+curEmp.name+' is now checked in with a valid pass.</div></div>';
+  renderPass(curEmp);updateAll();
+}
+function genCode(id){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';var p=id.replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();var r='';for(var i=0;i<6;i++)r+=c.charAt(Math.floor(Math.random()*c.length));return p+'-'+r;}
+function renderPass(emp){
+  set('p-n',emp.name);set('p-dept',emp.dept+' · '+emp.id);set('p-code',emp.code);set('p-id',emp.code);set('p-ts','Issued: '+emp.ts);
+  set('p-event-name',curEvent().name);
+  document.getElementById('p-name').textContent=emp.name;
+  document.getElementById('pass-display').style.display='block';
+  var qr=document.getElementById('p-qr');qr.innerHTML='';
+  try{new QRCode(qr,{text:emp.code+'|'+emp.id+'|'+emp.name,width:88,height:88,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});}catch(e){qr.innerHTML='<div style="font-size:9px;color:#999;text-align:center;padding:8px">QR</div>';}
+}
+function resetCIUI(){document.getElementById('pass-display').style.display='none';document.getElementById('checkin-result').style.display='none';document.getElementById('ci-empty').style.display='block';curEmp=null;}
+function resetCI(){document.getElementById('ci-inp').value='';document.getElementById('sel-emp').style.display='none';document.getElementById('no-emp-msg').style.display='none';resetCIUI();}
+
+/* ═══════════════════════════════
+   REPORTS
+═══════════════════════════════ */
+function renderReports(){
+  var emps=curEmps();var tot=emps.length,cin=emps.filter(function(e){return e.status==='Checked In';}).length,ps=emps.filter(function(e){return e.pass==='Yes';}).length;
+  set('r-total',tot);set('r-cin',cin);set('r-pass',ps);
+  var d={};emps.forEach(function(e){if(!d[e.dept])d[e.dept]={t:0,c:0,p:0};d[e.dept].t++;if(e.status==='Checked In')d[e.dept].c++;if(e.pass==='Yes')d[e.dept].p++;});
+  var de=document.getElementById('dept-rpt');
+  if(!Object.keys(d).length){de.innerHTML='<div class="es" style="padding:24px"><div class="ei">📊</div><p>No data yet.</p></div>';}
+  else de.innerHTML='<div class="twrap"><table><thead><tr><th>Department</th><th>Registered</th><th>Checked In</th><th>Passes</th><th>Attendance</th></tr></thead><tbody>'+Object.keys(d).map(function(k){return'<tr><td style="font-weight:500">'+k+'</td><td>'+d[k].t+'</td><td><span class="pill p-ok">'+d[k].c+'</span></td><td>'+d[k].p+'</td><td><span class="chip ch-v">'+Math.round(d[k].c/d[k].t*100)+'%</span></td></tr>';}).join('')+'</tbody></table></div>';
+  var fd=getFoodBreakdown();var fkeys=Object.keys(fd);var fe=document.getElementById('food-rpt');
+  if(!fkeys.length){fe.innerHTML='<div class="es" style="padding:24px"><div class="ei">🍽️</div><p>No food preference data yet.</p></div>';}
+  else fe.innerHTML='<div class="twrap"><table><thead><tr><th>Food Preference</th><th>Count</th><th>% of Total</th></tr></thead><tbody>'+fkeys.map(function(k,i){var pct=tot>0?Math.round(fd[k]/tot*100):0;return'<tr><td><span style="display:inline-flex;align-items:center;gap:7px"><span style="width:8px;height:8px;border-radius:50%;background:'+FOOD_COLORS[i%FOOD_COLORS.length]+';display:inline-block"></span>'+k+'</span></td><td><strong>'+fd[k]+'</strong></td><td><span class="chip ch-m">'+pct+'%</span></td></tr>';}).join('')+'</tbody></table></div>';
+  var cr=emps.filter(function(e){return e.status==='Checked In';});
+  set('cin-rec-cnt',cr.length+' records');var re=document.getElementById('cin-recs');
+  if(!cr.length){re.innerHTML='<div class="es" style="padding:24px"><div class="ei">📋</div><p>No check-ins yet.</p></div>';}
+  else re.innerHTML='<div class="twrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Department</th><th>Food Pref</th><th>Pass Code</th><th>Timestamp</th></tr></thead><tbody>'+cr.map(function(e){return'<tr><td class="tid">'+e.id+'</td><td style="font-weight:500">'+e.name+'</td><td>'+e.dept+'</td><td><span class="chip ch-m" style="font-size:10px">'+(e.food||'—')+'</span></td><td><span style="font-family:monospace;font-size:12px;color:var(--cm)">'+e.code+'</span></td><td style="font-size:11px;color:var(--cs)">'+e.ts+'</td></tr>';}).join('')+'</tbody></table></div>';
+}
+
+/* ═══════════════════════════════
+   AUDIT LOG
+═══════════════════════════════ */
+function addLog(type,msg){
+  var now=new Date();
+  var entry={type:type,msg:msg,ts:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),event:currentEventId};
+  globalLogs.unshift(entry);
+  if(document.getElementById('page-audit').classList.contains('active'))renderAudit();
+}
+function renderAudit(){
+  set('aud-cnt',globalLogs.length+' events');var el=document.getElementById('aud-list');
+  if(!globalLogs.length){el.innerHTML='<div class="es" style="padding:38px"><div class="ei">🔍</div><h3>No audit entries</h3><p>Activity appears here as events occur.</p></div>';return;}
+  var ic={CHECKIN:'✓',AUTH:'🔐',UPLOAD:'📁',EXPORT:'📤',SYSTEM:'⚙',CLEAR:'🗑',EVENT:'🗓',USER:'👤'};
+  el.innerHTML=globalLogs.map(function(a){
+    return'<div class="arow"><span class="atm">'+a.ts+'</span>'+
+      '<span style="font-size:13px;flex-shrink:0">'+(ic[a.type]||'·')+'</span>'+
+      '<span class="aev"><span class="chip '+(a.type==='CLEAR'||a.type==='AUTH'?'ch-r':'ch-v')+'" style="margin-right:6px;font-size:10px">'+a.type+'</span>'+a.msg+'</span></div>';
+  }).join('');
+}
+
+/* ═══════════════════════════════
+   GLOBAL MODAL
+═══════════════════════════════ */
+function openModal(title,sub,body,foot){
+  set('gm-title',title);set('gm-sub',sub);
+  document.getElementById('gm-body').innerHTML=body;
+  document.getElementById('gm-foot').innerHTML=foot;
+  document.getElementById('global-modal').style.display='flex';
+}
+function closeModal(){document.getElementById('global-modal').style.display='none';}
+
+/* ═══════════════════════════════
+   TOAST
+═══════════════════════════════ */
+function showToast(type,title,msg){
+  var ic={success:'✓',danger:'✕',warn:'⚠'};
+  var el=document.createElement('div');el.className='toast '+type;
+  el.innerHTML='<span class="t-ico">'+(ic[type]||'·')+'</span><div><div class="t-ttl">'+title+'</div><div class="t-msg">'+msg+'</div></div>';
+  document.getElementById('toast').appendChild(el);setTimeout(function(){el.remove();},4500);
+}
+</script>
+</body>
+</html>
